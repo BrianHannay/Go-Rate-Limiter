@@ -15,7 +15,7 @@ vet:
 	go vet ./...
 
 test:
-	go test ./... -v
+	go test ./test -v
 
 clean:
 	rm -f main

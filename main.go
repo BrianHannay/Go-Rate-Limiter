@@ -15,7 +15,7 @@ import (
 )
 
 // Demonstrating a template dependency requires importing it first
-import "./dependency"
+import "github.com/BrianHannay/golang-template-example/dependency"
 
 // the main function is the entrypoint to the compiled go program
 func main() {
