@@ -1,15 +1,16 @@
 // Packages prefixed with _test are run by "go test".
-package dependency_test
+package main
 
-// We'll need the testing package, for, you know... testing.
 import (
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/BrianHannay/golang-template-example/ratelimit"
+	"github.com/BrianHannay/Go-Rate-Limiter/ratelimit"
 )
+
+// We'll need the testing package, for, you know... testing.
 
 // Here's an example of testing a package using many subtests:
 func TestDependency(t *testing.T) {
@@ -71,7 +72,7 @@ func testSynchronousConsumption(t *testing.T) {
 var consumes atomic.Int32
 var group sync.WaitGroup
 
-func countConsumes(ratelimiter *ratelimit.RateLimit) {
+func countConsumes(ratelimiter ratelimit.IRateLimit) {
 	// Loop for infinity until a request is allowed
 	for {
 		if ratelimiter.Allowed() {

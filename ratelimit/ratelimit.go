@@ -9,15 +9,15 @@ import (
 	"time"
 )
 
-type RateLimit struct {
+type rateLimit struct {
 	mutex       sync.RWMutex
 	channel     chan time.Time
 	decayTicker *time.Ticker
 	destroyed   chan bool
 }
 
-func New(attempts int, duration time.Duration) *RateLimit {
-	limiter := &RateLimit{
+func New(attempts int, duration time.Duration) IRateLimit {
+	limiter := &rateLimit{
 		channel:     make(chan time.Time, attempts),
 		decayTicker: time.NewTicker(duration / time.Duration(attempts)),
 		destroyed:   make(chan bool, 1),
@@ -29,13 +29,13 @@ func New(attempts int, duration time.Duration) *RateLimit {
 	return limiter
 }
 
-func (limiter *RateLimit) Destroy() {
+func (limiter *rateLimit) Destroy() {
 	limiter.decayTicker.Stop()
 	limiter.destroyed <- true
 	close(limiter.channel)
 }
 
-func (limiter *RateLimit) decayLoop() {
+func (limiter *rateLimit) decayLoop() {
 	for {
 		select {
 		case <-limiter.destroyed:
@@ -46,24 +46,24 @@ func (limiter *RateLimit) decayLoop() {
 	}
 }
 
-func (limiter *RateLimit) GetLimit() int {
+func (limiter *rateLimit) GetLimit() int {
 	return cap(limiter.channel)
 }
-func (limiter *RateLimit) GetAttempts() int {
+func (limiter *rateLimit) GetAttempts() int {
 	return limiter.GetLimit() - len(limiter.channel)
 }
 
-func (limiter *RateLimit) Allowed() bool {
+func (limiter *rateLimit) Allowed() bool {
 	return len(limiter.channel) > 0
 }
 
-func (limiter *RateLimit) Consume() {
+func (limiter *rateLimit) Consume() {
 	limiter.mutex.Lock()
 	<-limiter.channel
 	limiter.mutex.Unlock()
 }
 
-func (limiter *RateLimit) ConsumeAsync() bool {
+func (limiter *rateLimit) ConsumeAsync() bool {
 	if limiter.mutex.TryLock() {
 		defer limiter.mutex.Unlock()
 		if limiter.Allowed() {

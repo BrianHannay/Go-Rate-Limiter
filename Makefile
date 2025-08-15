@@ -2,7 +2,7 @@ run: clean test format vet plugins main
 	./main
 
 plugins:
-	cd plugins && go build -buildmode=plugin ../plugins_src/*
+	go build -o plugins/ -buildmode=plugin ./plugins_src/*
 
 main: plugins main.go
 	go build main.go
