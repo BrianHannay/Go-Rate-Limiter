@@ -1,3 +1,3 @@
-module github.com/BrianHannay/golang-template-example
+module github.com/BrianHannay/Go-Rate-Limiter
 
 go 1.22.4

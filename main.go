@@ -12,17 +12,19 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"plugin"
 	"time"
 
-	"github.com/BrianHannay/golang-template-example/ratelimit"
+	"github.com/BrianHannay/Go-Rate-Limiter/ratelimit"
 )
 
-var limiter *ratelimit.RateLimit
+var limiter ratelimit.IRateLimit
+var pluginLimiter ratelimit.IRateLimit
 
 // the main function is the entrypoint to the compiled go program
 func main() {
 
-	requests := flag.Int("requests", 1, "Maximum number of requests per minute to handle")
+	requests := flag.Int("requests", 12, "Maximum number of requests per minute to handle")
 	port := flag.Int("port", 8888, "Port number on which to listen")
 	host := flag.String("host", "localhost", "Interface on which to listen")
 	flag.Parse()
@@ -44,9 +46,34 @@ func main() {
 	fmt.Println("Listening for any request")
 	register(mux, "/sync", syncRequest)
 	register(mux, "/async", asyncRequest)
+
+	newRateLimiter := loadRatelimiterPlugin()
+	if newRateLimiter != nil {
+		pluginLimiter = newRateLimiter(*requests, time.Minute)
+		register(mux, "/plugin/sync", pluginSyncRequest)
+		register(mux, "/plugin/async", pluginAsyncRequest)
+	}
 	fmt.Println("Listening on", addr)
 	server.ListenAndServe()
 }
+
+func loadRatelimiterPlugin() func(attempts int, duration time.Duration) ratelimit.IRateLimit {
+	plugin, err := plugin.Open("./plugins/ratelimit.so")
+	if err != nil {
+		fmt.Println(fmt.Errorf("failed to load plugin: %+v", err))
+		return nil
+	}
+
+	symbol, err := plugin.Lookup("New")
+	if err != nil {
+		fmt.Println(fmt.Errorf("failed to read RateLimit constructor: %+v", err))
+		return nil
+	}
+
+	casted := symbol.(*ratelimit.Constructor)
+	return *casted
+}
+
 func register(mux *http.ServeMux, route string, handleFunc func(http.ResponseWriter, *http.Request)) {
 	fmt.Println("Listening for requests to", route)
 	mux.HandleFunc(route, handleFunc)
@@ -67,6 +94,25 @@ func syncRequest(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Request to", r.RequestURI)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	limiter.Consume()
+	time.Sleep(100 * time.Millisecond) // Some resource intensive operations
+	w.Write([]byte("OK"))
+}
+
+func pluginAsyncRequest(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Request to", r.RequestURI)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if pluginLimiter.ConsumeAsync() {
+		time.Sleep(100 * time.Millisecond) // Some resource intensive operation
+		w.Write([]byte("OK"))
+	} else {
+		w.WriteHeader(http.StatusTooManyRequests)
+	}
+}
+
+func pluginSyncRequest(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Request to", r.RequestURI)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	pluginLimiter.Consume()
 	time.Sleep(100 * time.Millisecond) // Some resource intensive operations
 	w.Write([]byte("OK"))
 }
