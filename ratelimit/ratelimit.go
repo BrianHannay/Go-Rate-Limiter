@@ -16,7 +16,11 @@ type rateLimit struct {
 	destroyed   chan bool
 }
 
-func New(attempts int, duration time.Duration) IRateLimit {
+func New(duration time.Duration) IRateLimit {
+	return NewBursty(1, duration)
+}
+
+func NewBursty(attempts int, duration time.Duration) IRateLimit {
 	limiter := &rateLimit{
 		channel:     make(chan time.Time, attempts),
 		decayTicker: time.NewTicker(duration / time.Duration(attempts)),
