@@ -35,7 +35,7 @@ func main() {
 		*port,
 	)
 
-	limiter = ratelimit.New(*requests, time.Minute)
+	limiter = ratelimit.NewBursty(*requests, time.Minute)
 
 	mux := http.NewServeMux()
 
@@ -70,7 +70,7 @@ func loadRatelimiterPlugin() func(attempts int, duration time.Duration) ratelimi
 		return nil
 	}
 
-	casted := symbol.(*ratelimit.Constructor)
+	casted := symbol.(*ratelimit.BurstyConstructor)
 	return *casted
 }
 

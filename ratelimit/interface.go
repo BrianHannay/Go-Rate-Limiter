@@ -12,4 +12,5 @@ type IRateLimit interface {
 	ConsumeAsync() bool
 }
 
-type Constructor func(attempts int, duration time.Duration) IRateLimit
+type Constructor func(duration time.Duration) IRateLimit
+type BurstyConstructor func(attempts int, duration time.Duration) IRateLimit

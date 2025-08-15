@@ -10,6 +10,9 @@ import (
 	"github.com/BrianHannay/Go-Rate-Limiter/ratelimit"
 )
 
-var New ratelimit.Constructor = func(attempts int, duration time.Duration) ratelimit.IRateLimit {
-	return ratelimit.New(attempts, duration)
+var New ratelimit.Constructor = func(duration time.Duration) ratelimit.IRateLimit {
+	return ratelimit.New(duration)
+}
+var NewBursty ratelimit.BurstyConstructor = func(attempts int, duration time.Duration) ratelimit.IRateLimit {
+	return ratelimit.NewBursty(attempts, duration)
 }

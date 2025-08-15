@@ -25,7 +25,7 @@ func TestDependency(t *testing.T) {
 
 // Test that nil is an acceptable value to pass to dependency.Print
 func testRateLimitDefaultsAllowed(t *testing.T) {
-	ratelimiter := ratelimit.New(1, time.Second)
+	ratelimiter := ratelimit.New(time.Second)
 	if !ratelimiter.Allowed() {
 		t.Errorf("RateLimit not allowed by default")
 	}
@@ -42,7 +42,7 @@ func testRateLimitDefaultsAllowed(t *testing.T) {
 
 // Test that Dependency.Print calls Done exactly once
 func testLimiterLimits(t *testing.T) {
-	ratelimiter := ratelimit.New(1, time.Minute)
+	ratelimiter := ratelimit.New(time.Minute)
 	if !ratelimiter.ConsumeAsync() {
 		t.Errorf("RateLimiter fails to consume an asynchronous attempt")
 	}
@@ -53,7 +53,7 @@ func testLimiterLimits(t *testing.T) {
 }
 
 func testSynchronousConsumption(t *testing.T) {
-	ratelimiter := ratelimit.New(1, time.Second)
+	ratelimiter := ratelimit.New(time.Second)
 	timeBeforeFirst := time.Now().UnixMicro()
 	ratelimiter.Consume()
 	timeBetweenAttempts := time.Now().UnixMicro()
@@ -95,7 +95,7 @@ func countConsumes(ratelimiter ratelimit.IRateLimit) {
 func testLimitRace(t *testing.T) {
 
 	// 1 free consume per second
-	ratelimiter := ratelimit.New(1, time.Second)
+	ratelimiter := ratelimit.New(time.Second)
 
 	// Clear the initial "free" consume
 	ratelimiter.Consume()
