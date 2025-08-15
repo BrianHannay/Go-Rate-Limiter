@@ -1,14 +1,12 @@
 // Packages prefixed with _test are run by "go test".
 package dependency_test
 
-// We need to import the package being tested. In this case, we're in the package
-// being tested, so import everything from "."
-import "."
-
-// We'll also need the testing package, for, you know... testing.
+// We'll need the testing package, for, you know... testing.
 import (
 	"sync"
 	"testing"
+
+	"github.com/BrianHannay/golang-template-example/dependency"
 )
 
 // Here's an example of testing a package using many subtests:
