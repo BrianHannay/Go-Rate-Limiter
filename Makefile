@@ -1,4 +1,4 @@
-run: clean test format plugins main
+run: clean test format vet plugins main
 	./main
 
 plugins:
@@ -11,10 +11,13 @@ main: plugins main.go
 format:
 	find . -type f -name '*.go' -exec gofmt -w -e -s -d {} \;
 
+vet:
+	go vet ./...
+
 test:
 	go test ./... -v
 
 clean:
 	rm -f main
 
-.PHONY: run clean test format plugins
+.PHONY: run clean test format vet plugins
